@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tour360 — Éditeur de Visite Virtuelle</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Import map Three.js (ES modules) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three":              "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/":      "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════════
+     STRUCTURE PRINCIPALE
+     ════════════════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- ── SIDEBAR ──────────────────────────────────────────────────────── -->
+  <aside id="sidebar">
+
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <!-- Icône Tour 360° -->
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+          <path d="M2 12h20"/>
+        </svg>
+        <span class="sidebar-logo-text">Tour360 Editor</span>
+      </div>
+      <input
+        type="text"
+        id="tour-name"
+        class="tour-name-input"
+        placeholder="Nom de la visite…"
+        value="Ma Visite Virtuelle"
+      />
+    </div>
+
+    <div class="sidebar-section-title">Scènes</div>
+
+    <div id="scene-list">
+      <!-- Rempli dynamiquement par main.js -->
+    </div>
+
+    <div class="sidebar-footer">
+      <button id="btn-add-scene" class="btn-add-scene">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Ajouter une scène
+      </button>
+      <button id="btn-import" class="btn-import">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Importer JSON
+      </button>
+      <input type="file" id="import-file-input" accept=".json" style="display:none" />
+      <button id="btn-demo" class="btn-import" style="color:var(--accent);border-color:var(--accent-dim);">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        Charger la démo
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ── VIEWER 360° ──────────────────────────────────────────────────── -->
+  <main id="viewer">
+
+    <!-- Empty state -->
+    <div id="viewer-empty">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+        <path d="M2 12h20"/>
+      </svg>
+      <p>Ajoutez une scène pour commencer</p>
+    </div>
+
+    <!-- Info overlay (preview mode) -->
+    <div id="info-overlay">
+      <button id="info-overlay-close">✕</button>
+      <div class="info-overlay-type">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+        Information
+      </div>
+      <div id="info-overlay-title" class="info-overlay-title"></div>
+      <div id="info-overlay-desc"  class="info-overlay-desc"></div>
+    </div>
+
+  </main>
+
+  <!-- ── TOOLBAR ──────────────────────────────────────────────────────── -->
+  <footer id="toolbar">
+
+    <!-- Groupe Mode -->
+    <div class="toolbar-group">
+      <button id="btn-preview" class="btn active">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        Preview
+      </button>
+      <button id="btn-edit" class="btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Édition
+      </button>
+    </div>
+
+    <div class="toolbar-sep"></div>
+
+    <!-- Groupe Édition (masqué en preview) -->
+    <div id="edit-tools" class="toolbar-group" style="display:none;">
+      <button id="btn-add-hotspot" class="btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+        </svg>
+        Ajouter hotspot
+      </button>
+      <button id="btn-delete-hotspot" class="btn btn-danger">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M18 6L6 18M6 6l12 12"/>
+        </svg>
+        Supprimer
+      </button>
+      <div class="toolbar-sep"></div>
+    </div>
+
+    <div class="toolbar-spacer"></div>
+
+    <!-- Export -->
+    <div class="toolbar-group">
+      <button id="btn-export" class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Exporter JSON
+      </button>
+    </div>
+
+  </footer>
+
+  <!-- ── STATUS BAR ──────────────────────────────────────────────────── -->
+  <div id="statusbar">
+    <div class="status-item">
+      <div id="status-dot" class="status-dot preview"></div>
+      <span id="status-mode">PREVIEW</span>
+    </div>
+    <span class="status-sep">│</span>
+    <div class="status-item">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      </svg>
+      <span id="status-scene">—</span>
+    </div>
+    <span class="status-sep">│</span>
+    <div class="status-item">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+      </svg>
+      <span id="status-hotspots">0 hotspot</span>
+    </div>
+    <span class="status-sep">│</span>
+    <span style="color:var(--text-muted)">Tour360 Editor v1.0</span>
+  </div>
+
+</div><!-- /#app -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════
+     MODALS
+     ════════════════════════════════════════════════════════════════════ -->
+
+<!-- Modal : Hotspot (créer / éditer) -->
+<div id="modal-overlay" class="modal-overlay-bg" style="
+  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;z-index:100;">
+  <div class="modal">
+    <h2 class="modal-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+      </svg>
+      <span id="modal-title-text">Nouveau hotspot</span>
+    </h2>
+
+    <div id="hotspot-form">
+      <div class="modal-field">
+        <label for="hs-type">Type</label>
+        <select id="hs-type">
+          <option value="navigate">🔵 Navigation — vers une autre scène</option>
+          <option value="info">🟢 Information — texte descriptif</option>
+        </select>
+      </div>
+
+      <!-- Champs Navigation -->
+      <div id="hs-nav-fields">
+        <div class="modal-field">
+          <label for="hs-target">Scène cible</label>
+          <select id="hs-target">
+            <option value="">— Choisir une scène —</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label for="hs-label">Étiquette (optionnel)</label>
+          <input type="text" id="hs-label" placeholder="Ex : Vers la cuisine…" />
+        </div>
+      </div>
+
+      <!-- Champs Info -->
+      <div id="hs-info-fields" style="display:none;">
+        <div class="modal-field">
+          <label for="hs-title">Titre</label>
+          <input type="text" id="hs-title" placeholder="Ex : Canapé en cuir…" />
+        </div>
+        <div class="modal-field">
+          <label for="hs-desc">Description</label>
+          <textarea id="hs-desc" placeholder="Description détaillée…"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="btn-hotspot-delete" class="btn btn-danger" style="margin-right:auto;display:none;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+          <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+        </svg>
+        Supprimer
+      </button>
+      <button id="btn-hotspot-cancel" class="btn">Annuler</button>
+      <button id="btn-hotspot-confirm" class="btn btn-primary">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal : Ajouter scène -->
+<div id="add-scene-overlay" style="
+  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;z-index:100;">
+  <div class="modal">
+    <h2 class="modal-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+      </svg>
+      Nouvelle scène
+    </h2>
+
+    <div class="modal-field">
+      <label for="new-scene-name">Nom de la scène *</label>
+      <input type="text" id="new-scene-name" placeholder="Ex : Salon, Cuisine, Jardin…" />
+    </div>
+    <div class="modal-field">
+      <label for="new-scene-image">URL de l'image panoramique</label>
+      <input type="url" id="new-scene-image"
+        placeholder="https://… (équirectangulaire, ratio 2:1)" />
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-top:-6px;margin-bottom:4px;">
+      Format attendu : JPEG/PNG équirectangulaire (ratio 2:1 recommandé).<br>
+      Vous pouvez ajouter l'image plus tard en éditant la scène.
+    </p>
+
+    <div class="modal-actions">
+      <button id="btn-add-scene-cancel" class="btn">Annuler</button>
+      <button id="btn-add-scene-confirm" class="btn btn-primary">Créer la scène</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal : Export JSON -->
+<div id="export-overlay" style="
+  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;z-index:100;">
+  <div class="modal" style="max-width:560px;">
+    <h2 class="modal-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+      </svg>
+      Exporter la visite
+    </h2>
+
+    <div class="modal-field">
+      <label>Aperçu JSON</label>
+      <pre id="export-preview" style="
+        background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius-sm);
+        padding:12px;font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);
+        max-height:260px;overflow:auto;white-space:pre;line-height:1.6;
+      "></pre>
+    </div>
+
+    <div class="modal-actions">
+      <button id="btn-export-cancel" class="btn">Annuler</button>
+      <button id="btn-export-confirm" class="btn btn-primary">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+        </svg>
+        Télécharger le fichier
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Conteneur toasts -->
+<div id="toast-container"></div>
+
+<!-- Styles inline pour les overlays modaux (visibility toggle) -->
+<style>
+  #modal-overlay.visible,
+  #add-scene-overlay.visible,
+  #export-overlay.visible { display: flex !important; }
+</style>
+
+<!-- Point d'entrée ES module -->
+<script type="module" src="main.js"></script>
+</body>
+</html>

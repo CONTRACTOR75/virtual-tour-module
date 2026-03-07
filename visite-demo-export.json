@@ -1,0 +1,87 @@
+{
+  "name": "Visite Démo — Appartement",
+  "initialScene": "salon",
+  "scenes": {
+    "salon": {
+      "name": "Salon",
+      "image": "https://votre-domaine.com/images/salon-360.jpg",
+      "hotspots": [
+        {
+          "type": "navigate",
+          "yaw": 45,
+          "pitch": -8,
+          "target": "cuisine",
+          "label": "Vers la Cuisine"
+        },
+        {
+          "type": "navigate",
+          "yaw": -120,
+          "pitch": -5,
+          "target": "chambre",
+          "label": "Vers la Chambre"
+        },
+        {
+          "type": "info",
+          "yaw": -90,
+          "pitch": 5,
+          "title": "Canapé",
+          "description": "Canapé en cuir naturel brun, 3 places, réalisé par un artisan local. Dimensions : 240cm × 90cm."
+        },
+        {
+          "type": "info",
+          "yaw": 160,
+          "pitch": 10,
+          "title": "Bibliothèque",
+          "description": "Bibliothèque sur mesure en chêne massif, 400 ouvrages. Hauteur sous plafond : 2,80m."
+        }
+      ]
+    },
+    "cuisine": {
+      "name": "Cuisine",
+      "image": "https://votre-domaine.com/images/cuisine-360.jpg",
+      "hotspots": [
+        {
+          "type": "navigate",
+          "yaw": -135,
+          "pitch": -5,
+          "target": "salon",
+          "label": "Vers le Salon"
+        },
+        {
+          "type": "info",
+          "yaw": 30,
+          "pitch": 5,
+          "title": "Îlot central",
+          "description": "Plan de travail en marbre de Carrare blanc, 3m × 1,2m. Équipé d'un évier double bac et d'une plaque induction."
+        },
+        {
+          "type": "info",
+          "yaw": 150,
+          "pitch": -10,
+          "title": "Cuisine équipée",
+          "description": "Cuisine Bulthaup B3 entièrement équipée : réfrigérateur intégré, four vapeur, lave-vaisselle."
+        }
+      ]
+    },
+    "chambre": {
+      "name": "Chambre principale",
+      "image": "https://votre-domaine.com/images/chambre-360.jpg",
+      "hotspots": [
+        {
+          "type": "navigate",
+          "yaw": 90,
+          "pitch": -5,
+          "target": "salon",
+          "label": "Vers le Salon"
+        },
+        {
+          "type": "info",
+          "yaw": 0,
+          "pitch": 0,
+          "title": "Lit King Size",
+          "description": "Lit king size (180×200cm) avec tête de lit en velours gris anthracite."
+        }
+      ]
+    }
+  }
+}
