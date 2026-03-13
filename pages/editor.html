@@ -142,6 +142,13 @@
         </svg>
         Supprimer
       </button>
+      <!-- ← NOUVEAU -->
+      <button id="btn-clear-scene" class="btn btn-danger">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>
+        </svg>
+        Effacer la scène
+      </button>
       <div class="toolbar-sep"></div>
     </div>
 
@@ -268,12 +275,12 @@
 
     <div class="modal-field">
       <label for="new-scene-name">Nom de la scène *</label>
-      <input type="text" id="new-scene-name" placeholder="Ex : Salon, Cuisine, Jardin…" />
+      <input type="text" id="new-scene-name" placeholder="Ex : Salon, Cuisine, Jardin…" required/>
     </div>
     <div class="modal-field">
       <label for="new-scene-image">URL de l'image panoramique</label>
       <input type="url" id="new-scene-image"
-        placeholder="https://… (équirectangulaire, ratio 2:1)" />
+        placeholder="https://… (équirectangulaire, ratio 2:1)" required/>
     </div>
     <p style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-top:-6px;margin-bottom:4px;">
       Format attendu : JPEG/PNG équirectangulaire (ratio 2:1 recommandé).<br>
@@ -322,6 +329,35 @@
   </div>
 </div>
 
+<!-- Modal : Confirmer effacement de scène -->
+<!-- ← NOUVEAU -->
+<div id="clear-scene-overlay" style="
+  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;z-index:100;">
+  <div class="modal" style="max-width:400px;">
+    <h2 class="modal-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+      </svg>
+      Effacer la scène
+    </h2>
+    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:20px;">
+      Tous les hotspots de la scène <strong id="clear-scene-name" style="color:var(--text-primary)"></strong>
+      seront supprimés. Cette action est irréversible.
+    </p>
+    <div class="modal-actions">
+      <button id="btn-clear-scene-cancel" class="btn">Annuler</button>
+      <button id="btn-clear-scene-confirm" class="btn btn-danger">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/>
+        </svg>
+        Effacer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Conteneur toasts -->
 <!-- Conteneur toasts -->
 <div id="toast-container"></div>
 
@@ -330,6 +366,7 @@
   #modal-overlay.visible,
   #add-scene-overlay.visible,
   #export-overlay.visible { display: flex !important; }
+  #clear-scene-overlay.visible { display: flex !important; }
 </style>
 
 <!-- Point d'entrée ES module -->

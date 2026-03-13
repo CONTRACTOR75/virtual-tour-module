@@ -377,7 +377,7 @@ document.getElementById('btn-hotspot-confirm').addEventListener('click', () => {
 // ── État global pour le mode chaîné (hotspot sans cible) ────────────
 let _chainedHotspot  = null;
 let _chainedBanner   = null;
-
+let _isDemoLoaded = false;
 /**
  * Ouvre le modal "Ajouter une scène" en mode chaîné :
  * une fois la scène créée, elle est automatiquement assignée comme cible du hotspot.
@@ -492,6 +492,46 @@ document.getElementById('btn-delete-hotspot').addEventListener('click', () => {
   }
 });
 
+// ── Effacer la scène courante ─────────────────────────────────────────
+// ← NOUVEAU — tout ce bloc
+document.getElementById('btn-clear-scene').addEventListener('click', () => {
+  const scene = sceneMgr.getCurrentScene();
+  if (!scene) { showToast('Aucune scène chargée', 'error'); return; }
+
+  // Démo : effacement direct sans confirmation
+  if (_isDemoLoaded) {
+    doClearScene();
+    return;
+  }
+
+  // Données réelles : demander confirmation
+  document.getElementById('clear-scene-name').textContent = `"${scene.name}"`;
+  document.getElementById('clear-scene-overlay').classList.add('visible');
+});
+
+document.getElementById('btn-clear-scene-confirm').addEventListener('click', () => {
+  document.getElementById('clear-scene-overlay').classList.remove('visible');
+  doClearScene();
+});
+
+document.getElementById('btn-clear-scene-cancel').addEventListener('click', () => {
+  document.getElementById('clear-scene-overlay').classList.remove('visible');
+});
+
+document.getElementById('clear-scene-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('clear-scene-overlay')) {
+    document.getElementById('clear-scene-overlay').classList.remove('visible');
+  }
+});
+
+function doClearScene() {
+  hotspotMgr.removeAllHotspots();
+  sceneMgr.saveCurrentScene(); // persiste la liste vide dans tourData
+  updateStatus();
+  showToast('Scène effacée', 'info');
+}
+
+// ── Export ────────────────────────────────────────────────────────────
 document.getElementById('btn-export').addEventListener('click', () => {
   const tourData = sceneMgr.exportTour();
   if (!Object.keys(tourData.scenes).length) {
@@ -663,6 +703,7 @@ document.getElementById('import-file-input').addEventListener('change', async (e
   try {
     const data = await TourSerializer.importFromFile(file);
     await sceneMgr.importTour(data);
+    _isDemoLoaded = false;
     document.getElementById('tour-name').value = data.name || '';
     showToast('Visite importée avec succès', 'success');
   } catch (err) {
@@ -677,6 +718,7 @@ document.getElementById('btn-demo').addEventListener('click', async () => {
   const data = TourSerializer.generateDemoData();
   await sceneMgr.importTour(data);
   document.getElementById('tour-name').value = data.name;
+  _isDemoLoaded = true;
   showToast('Données de démo chargées', 'info');
 });
 
