@@ -6,19 +6,22 @@
 
 ```
 tour-editor/
-├── landing.html                # Page d'accueil — choix Visualiser / Éditer
-├── index.html                  # Éditeur complet
-├── main.js                     # Logique éditeur & événements UI
-├── viewer.html                 # Visualiseur standalone
-├── viewer.js                   # Logique visualiseur
-├── styles.css                  # Styles éditeur (thème sombre industriel)
+├── index.html                  # Page d'accueil — choix Visualiser / Éditer
+├── pages/
+│   ├── editor.html             # Éditeur complet
+│   └── viewer.html             # Visualiseur standalone
+├── scripts/
+│   ├── main.js                 # Logique éditeur & événements UI
+│   └── viewer.js               # Logique visualiseur
+├── styles/
+│   └── styles.css              # Styles éditeur (thème sombre industriel)
 ├── core/
 │   ├── engine.js               # Moteur Three.js (sphère, caméra, raycasting)
 │   ├── hotspot-manager.js      # Création, sélection, drag des hotspots
 │   ├── scene-manager.js        # Chargement, sauvegarde, navigation entre scènes
 │   └── tour-serializer.js      # Export/import JSON
 ├── visite-demo-export.json     # Exemple de JSON exporté
-└── README.md                   # Ce fichier
+└── README.md
 ```
 
 ## Installation et lancement
@@ -28,7 +31,9 @@ tour-editor/
 ```bash
 cd tour-editor
 python3 -m http.server 8080
-# Ouvrir : http://localhost:8080/landing.html
+# Ouvrir : http://localhost:8080/index.html
+ou simplement
+# Ouvrir : http://localhost:8080
 ```
 
 Autres options : `npx serve .` ou l'extension **Live Server** de VS Code.
@@ -39,8 +44,8 @@ Autres options : `npx serve .` ou l'extension **Live Server** de VS Code.
 
 | Fichier | Rôle |
 |---|---|
-| `landing.html` | Page d'accueil — sélection fichier JSON + lien éditeur |
-| `index.html` | Éditeur complet (créer/modifier une visite) |
+| `index.html` | Page d'accueil — sélection fichier JSON + lien éditeur |
+| `editor.html` | Éditeur complet (créer/modifier une visite) |
 | `viewer.html?tour=fichier.json` | Visualiseur appelé avec un fichier JSON |
 | `viewer.html?tour=__session__` | Visualiseur appelé depuis la landing (via sessionStorage) |
 
