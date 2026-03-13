@@ -3,10 +3,10 @@
  * Orchestre l'Engine, le HotspotManager, le SceneManager et l'interface utilisateur.
  */
 
-import { Engine }          from './core/engine.js';
-import { HotspotManager }  from './core/hotspot-manager.js';
-import { SceneManager }    from './core/scene-manager.js';
-import { TourSerializer }  from './core/tour-serializer.js';
+import { Engine }          from '../core/engine.js';
+import { HotspotManager }  from '../core/hotspot-manager.js';
+import { SceneManager }    from '../core/scene-manager.js';
+import { TourSerializer }  from '../core/tour-serializer.js';
 
 /* ══════════════════════════════════════════════════════════════════════
    Initialisation

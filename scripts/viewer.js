@@ -2,13 +2,13 @@
  * viewer.js — Visualiseur de visite virtuelle 360°
  * Réutilise les mêmes modules core/ que l'éditeur.
  *
- * Appel : viewer.html?tour=mon-fichier.json
- *         viewer.html?tour=https://cdn.example.com/visite.json
+ * Appel : /pages/viewer.html?tour=mon-fichier.json
+ *         /pages/viewer.html?tour=https://cdn.example.com/visite.json
  */
 
-import { Engine }         from './core/engine.js';
-import { HotspotManager } from './core/hotspot-manager.js';
-import { SceneManager }   from './core/scene-manager.js';
+import { Engine }         from '../core/engine.js';
+import { HotspotManager } from '../core/hotspot-manager.js';
+import { SceneManager }   from '../core/scene-manager.js';
 
 /* ══════════════════════════════════════════════════════════════════════
    Initialisation moteur

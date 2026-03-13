@@ -3,336 +3,600 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tour360 — Éditeur de Visite Virtuelle</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Tour360 — Visites Virtuelles 360°</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
 
-  <!-- Import map Three.js (ES modules) -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three":              "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/":      "https://unpkg.com/three@0.160.0/examples/jsm/"
+  <style>
+    /* ── Variables ──────────────────────────────────────────────────── */
+    :root {
+      --ink:       #0a0d12;
+      --ink-soft:  #1c2230;
+      --paper:     #f4f1eb;
+      --paper-alt: #ede9e0;
+      --amber:     #c8860a;
+      --amber-dim: rgba(200,134,10,0.12);
+      --blue:      #1a4a8a;
+      --muted:     #8a8578;
+      --border:    rgba(10,13,18,0.1);
+      --grid:      rgba(10,13,18,0.045);
+
+      --font-display: 'DM Serif Display', Georgia, serif;
+      --font-body:    'DM Sans',          system-ui, sans-serif;
+      --font-mono:    'DM Mono',          monospace;
     }
-  }
-  </script>
+
+    /* ── Reset ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-height: 100vh;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Grille de fond cartographique ─────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Grain texture léger */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────────── */
+    .page {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 28px 0 0;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .logo-mark {
+      width: 32px; height: 32px;
+      border: 1.5px solid var(--ink);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+
+    /* Méridien et équateur stylisés */
+    .logo-mark::before,
+    .logo-mark::after {
+      content: '';
+      position: absolute;
+      border: 1px solid var(--ink);
+    }
+    .logo-mark::before {
+      width: 100%; height: 60%;
+      border-radius: 50%;
+      border-left: none; border-right: none;
+      top: 20%; left: 0;
+    }
+    .logo-mark::after {
+      width: 60%; height: 100%;
+      border-radius: 50%;
+      border-top: none; border-bottom: none;
+      left: 20%; top: 0;
+    }
+
+    .logo-text {
+      font-family: var(--font-mono);
+      font-size: 13px; font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--ink);
+    }
+
+    .header-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    /* ── Hero ────────────────────────────────────────────────────────── */
+    .hero {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 64px 0 48px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px;
+      animation: fadeUp 0.5s 0.05s ease both;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 28px; height: 1px;
+      background: var(--amber);
+    }
+
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 400;
+      line-height: 1.1;
+      color: var(--ink);
+      max-width: 640px;
+      margin-bottom: 20px;
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--amber);
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 440px;
+      line-height: 1.7;
+      margin-bottom: 52px;
+      animation: fadeUp 0.5s 0.15s ease both;
+    }
+
+    /* ── Cartes d'action ─────────────────────────────────────────────── */
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      animation: fadeUp 0.5s 0.2s ease both;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 32px 28px 28px;
+      cursor: pointer;
+      transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 2px;
+      background: var(--amber);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.22s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 40px rgba(10,13,18,0.1);
+      border-color: rgba(10,13,18,0.18);
+    }
+
+    .card:hover::before { transform: scaleX(1); }
+
+    /* Carte visualiseur — légèrement plus grande */
+    .card-viewer {
+      grid-column: 1;
+    }
+
+    .card-editor {
+      grid-column: 2;
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--paper);
+    }
+
+    .card-editor::before { background: var(--amber); }
+
+    .card-number {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .card-editor .card-number { color: rgba(244,241,235,0.35); }
+
+    .card-icon {
+      width: 40px; height: 40px;
+      margin-bottom: 20px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+    }
+
+    .card-editor .card-icon {
+      border-color: rgba(244,241,235,0.15);
+    }
+
+    .card-icon svg { color: var(--amber); }
+
+    h2 {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      font-weight: 400;
+      line-height: 1.2;
+      margin-bottom: 10px;
+    }
+
+    .card-editor h2 { color: var(--paper); }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 28px;
+    }
+
+    .card-editor .card-desc { color: rgba(244,241,235,0.5); }
+
+    /* Zone de drop fichier dans la carte visualiseur */
+    .file-zone {
+      border: 1.5px dashed var(--border);
+      border-radius: 3px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.15s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .file-zone:hover,
+    .file-zone.drag-over {
+      border-color: var(--amber);
+      background: var(--amber-dim);
+    }
+
+    .file-zone input[type="file"] {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+
+    .file-zone-text {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      pointer-events: none;
+    }
+
+    .file-zone-text strong {
+      color: var(--amber);
+      display: block;
+      font-size: 12px;
+      margin-bottom: 2px;
+    }
+
+    .file-zone-selected {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink);
+      font-weight: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .file-zone-selected svg { color: var(--amber); flex-shrink: 0; }
+
+    /* Bouton lancer */
+    .btn-launch {
+      width: 100%;
+      margin-top: 10px;
+      padding: 11px;
+      background: var(--amber);
+      border: none;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: white;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-launch:hover { background: #b07608; }
+    .btn-launch.visible { display: flex; }
+
+    /* Bouton éditeur */
+    .btn-editor {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      background: rgba(244,241,235,0.06);
+      border: 1px solid rgba(244,241,235,0.12);
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--paper);
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .btn-editor:hover {
+      background: rgba(244,241,235,0.1);
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    .btn-arrow {
+      transition: transform 0.15s;
+    }
+
+    .btn-editor:hover .btn-arrow { transform: translateX(4px); }
+
+    /* ── Footer ─────────────────────────────────────────────────────── */
+    footer {
+      padding: 20px 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      animation: fadeUp 0.5s 0.25s ease both;
+    }
+
+    .footer-note {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .footer-coords {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--border);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Animations ─────────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .page { padding: 0 20px; }
+      .actions { grid-template-columns: 1fr; }
+      .card-viewer { grid-column: 1; }
+      .card-editor { grid-column: 1; }
+      h1 { font-size: 2rem; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════════════════════════════
-     STRUCTURE PRINCIPALE
-     ════════════════════════════════════════════════════════════════════ -->
-<div id="app">
+<div class="page">
 
-  <!-- ── SIDEBAR ──────────────────────────────────────────────────────── -->
-  <aside id="sidebar">
-
-    <div class="sidebar-header">
-      <div class="sidebar-logo">
-        <!-- Icône Tour 360° -->
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="12" cy="12" r="10"/>
-          <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-          <path d="M2 12h20"/>
-        </svg>
-        <span class="sidebar-logo-text">Tour360 Editor</span>
-      </div>
-      <input
-        type="text"
-        id="tour-name"
-        class="tour-name-input"
-        placeholder="Nom de la visite…"
-        value="Ma Visite Virtuelle"
-      />
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-mark"></div>
+      <span class="logo-text">TOUR360</span>
     </div>
+    <span class="header-tag">v1.0 — Module ES6</span>
+  </header>
 
-    <div class="sidebar-section-title">Scènes</div>
+  <!-- Hero -->
+  <main class="hero">
 
-    <div id="scene-list">
-      <!-- Rempli dynamiquement par main.js -->
-    </div>
+    <div class="hero-eyebrow">Visites virtuelles 360°</div>
 
-    <div class="sidebar-footer">
-      <button id="btn-add-scene" class="btn-add-scene">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-        Ajouter une scène
-      </button>
-      <button id="btn-import" class="btn-import">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-          <polyline points="17 8 12 3 7 8"/>
-          <line x1="12" y1="3" x2="12" y2="15"/>
-        </svg>
-        Importer JSON
-      </button>
-      <input type="file" id="import-file-input" accept=".json" style="display:none" />
-      <button id="btn-demo" class="btn-import" style="color:var(--accent);border-color:var(--accent-dim);">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-        Charger la démo
-      </button>
-    </div>
+    <h1>Explorez ou <em>créez</em><br>vos espaces.</h1>
 
-  </aside>
-
-  <!-- ── VIEWER 360° ──────────────────────────────────────────────────── -->
-  <main id="viewer">
-
-    <!-- Empty state -->
-    <div id="viewer-empty">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-        <path d="M2 12h20"/>
-      </svg>
-      <p>Ajoutez une scène pour commencer</p>
-    </div>
-
-    <!-- Info overlay (preview mode) -->
-    <div id="info-overlay">
-      <button id="info-overlay-close">✕</button>
-      <div class="info-overlay-type">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
-        Information
-      </div>
-      <div id="info-overlay-title" class="info-overlay-title"></div>
-      <div id="info-overlay-desc"  class="info-overlay-desc"></div>
-    </div>
-
-  </main>
-
-  <!-- ── TOOLBAR ──────────────────────────────────────────────────────── -->
-  <footer id="toolbar">
-
-    <!-- Groupe Mode -->
-    <div class="toolbar-group">
-      <button id="btn-preview" class="btn active">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
-        Preview
-      </button>
-      <button id="btn-edit" class="btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
-        Édition
-      </button>
-    </div>
-
-    <div class="toolbar-sep"></div>
-
-    <!-- Groupe Édition (masqué en preview) -->
-    <div id="edit-tools" class="toolbar-group" style="display:none;">
-      <button id="btn-add-hotspot" class="btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-        </svg>
-        Ajouter hotspot
-      </button>
-      <button id="btn-delete-hotspot" class="btn btn-danger">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M18 6L6 18M6 6l12 12"/>
-        </svg>
-        Supprimer
-      </button>
-      <div class="toolbar-sep"></div>
-    </div>
-
-    <div class="toolbar-spacer"></div>
-
-    <!-- Export -->
-    <div class="toolbar-group">
-      <button id="btn-export" class="btn btn-primary">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Exporter JSON
-      </button>
-    </div>
-
-  </footer>
-
-  <!-- ── STATUS BAR ──────────────────────────────────────────────────── -->
-  <div id="statusbar">
-    <div class="status-item">
-      <div id="status-dot" class="status-dot preview"></div>
-      <span id="status-mode">PREVIEW</span>
-    </div>
-    <span class="status-sep">│</span>
-    <div class="status-item">
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-      </svg>
-      <span id="status-scene">—</span>
-    </div>
-    <span class="status-sep">│</span>
-    <div class="status-item">
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-      </svg>
-      <span id="status-hotspots">0 hotspot</span>
-    </div>
-    <span class="status-sep">│</span>
-    <span style="color:var(--text-muted)">Tour360 Editor v1.0</span>
-  </div>
-
-</div><!-- /#app -->
-
-
-<!-- ════════════════════════════════════════════════════════════════════
-     MODALS
-     ════════════════════════════════════════════════════════════════════ -->
-
-<!-- Modal : Hotspot (créer / éditer) -->
-<div id="modal-overlay" class="modal-overlay-bg" style="
-  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
-  display:none;align-items:center;justify-content:center;z-index:100;">
-  <div class="modal">
-    <h2 class="modal-title">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
-      </svg>
-      <span id="modal-title-text">Nouveau hotspot</span>
-    </h2>
-
-    <div id="hotspot-form">
-      <div class="modal-field">
-        <label for="hs-type">Type</label>
-        <select id="hs-type">
-          <option value="navigate">🔵 Navigation — vers une autre scène</option>
-          <option value="info">🟢 Information — texte descriptif</option>
-        </select>
-      </div>
-
-      <!-- Champs Navigation -->
-      <div id="hs-nav-fields">
-        <div class="modal-field">
-          <label for="hs-target">Scène cible</label>
-          <select id="hs-target">
-            <option value="">— Choisir une scène —</option>
-          </select>
-        </div>
-        <div class="modal-field">
-          <label for="hs-label">Étiquette (optionnel)</label>
-          <input type="text" id="hs-label" placeholder="Ex : Vers la cuisine…" />
-        </div>
-      </div>
-
-      <!-- Champs Info -->
-      <div id="hs-info-fields" style="display:none;">
-        <div class="modal-field">
-          <label for="hs-title">Titre</label>
-          <input type="text" id="hs-title" placeholder="Ex : Canapé en cuir…" />
-        </div>
-        <div class="modal-field">
-          <label for="hs-desc">Description</label>
-          <textarea id="hs-desc" placeholder="Description détaillée…"></textarea>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-actions">
-      <button id="btn-hotspot-delete" class="btn btn-danger" style="margin-right:auto;display:none;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
-          <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
-        </svg>
-        Supprimer
-      </button>
-      <button id="btn-hotspot-cancel" class="btn">Annuler</button>
-      <button id="btn-hotspot-confirm" class="btn btn-primary">Confirmer</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal : Ajouter scène -->
-<div id="add-scene-overlay" style="
-  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
-  display:none;align-items:center;justify-content:center;z-index:100;">
-  <div class="modal">
-    <h2 class="modal-title">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-      </svg>
-      Nouvelle scène
-    </h2>
-
-    <div class="modal-field">
-      <label for="new-scene-name">Nom de la scène *</label>
-      <input type="text" id="new-scene-name" placeholder="Ex : Salon, Cuisine, Jardin…" />
-    </div>
-    <div class="modal-field">
-      <label for="new-scene-image">URL de l'image panoramique</label>
-      <input type="url" id="new-scene-image"
-        placeholder="https://… (équirectangulaire, ratio 2:1)" />
-    </div>
-    <p style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);margin-top:-6px;margin-bottom:4px;">
-      Format attendu : JPEG/PNG équirectangulaire (ratio 2:1 recommandé).<br>
-      Vous pouvez ajouter l'image plus tard en éditant la scène.
+    <p class="hero-sub">
+      Visualisez une visite depuis un fichier JSON,
+      ou ouvrez l'éditeur pour composer vos scènes et placer vos hotspots.
     </p>
 
-    <div class="modal-actions">
-      <button id="btn-add-scene-cancel" class="btn">Annuler</button>
-      <button id="btn-add-scene-confirm" class="btn btn-primary">Créer la scène</button>
+    <!-- Cartes d'action -->
+    <div class="actions">
+
+      <!-- ── Carte Visualiseur ──────────────────────────────────────── -->
+      <div class="card card-viewer">
+        <span class="card-number">01 —</span>
+
+        <div class="card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </div>
+
+        <h2>Visualiser<br>une visite</h2>
+        <p class="card-desc">
+          Chargez un fichier JSON exporté depuis l'éditeur
+          et naviguez librement dans la visite.
+        </p>
+
+        <!-- Zone drop -->
+        <div class="file-zone" id="file-zone">
+          <input type="file" id="file-input" accept=".json" />
+          <div class="file-zone-text" id="file-placeholder">
+            <strong>Choisir un fichier JSON</strong>
+            ou glisser-déposer ici
+          </div>
+          <div class="file-zone-selected" id="file-selected">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            <span id="file-name"></span>
+          </div>
+        </div>
+
+        <button class="btn-launch" id="btn-launch">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Lancer la visite
+        </button>
+      </div>
+
+      <!-- ── Carte Éditeur ──────────────────────────────────────────── -->
+      <div class="card card-editor">
+        <span class="card-number">02 —</span>
+
+        <div class="card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        </div>
+
+        <h2>Ouvrir<br>l'éditeur</h2>
+        <p class="card-desc">
+          Créez vos scènes 360°, placez des hotspots de navigation
+          et d'information, puis exportez votre visite en JSON.
+        </p>
+
+        <a href="/pages/editor.html" class="btn-editor">
+          <span>Ouvrir l'éditeur</span>
+          <svg class="btn-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+
     </div>
-  </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <span class="footer-note">Three.js · ES6 Modules · Zéro dépendance</span>
+    <span class="footer-coords">48°51′N 2°21′E</span>
+  </footer>
+
 </div>
 
-<!-- Modal : Export JSON -->
-<div id="export-overlay" style="
-  position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
-  display:none;align-items:center;justify-content:center;z-index:100;">
-  <div class="modal" style="max-width:560px;">
-    <h2 class="modal-title">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-      </svg>
-      Exporter la visite
-    </h2>
+<script>
+  const fileInput    = document.getElementById('file-input');
+  const fileZone     = document.getElementById('file-zone');
+  const filePlaceholder = document.getElementById('file-placeholder');
+  const fileSelected = document.getElementById('file-selected');
+  const fileName     = document.getElementById('file-name');
+  const btnLaunch    = document.getElementById('btn-launch');
 
-    <div class="modal-field">
-      <label>Aperçu JSON</label>
-      <pre id="export-preview" style="
-        background:var(--bg-deep);border:1px solid var(--border);border-radius:var(--radius-sm);
-        padding:12px;font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);
-        max-height:260px;overflow:auto;white-space:pre;line-height:1.6;
-      "></pre>
-    </div>
+  let selectedFile = null;
 
-    <div class="modal-actions">
-      <button id="btn-export-cancel" class="btn">Annuler</button>
-      <button id="btn-export-confirm" class="btn btn-primary">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-        </svg>
-        Télécharger le fichier
-      </button>
-    </div>
-  </div>
-</div>
+  // ── Sélection via input ────────────────────────────────────────────
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) selectFile(file);
+  });
 
-<!-- Conteneur toasts -->
-<div id="toast-container"></div>
+  // ── Drag & drop ────────────────────────────────────────────────────
+  fileZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    fileZone.classList.add('drag-over');
+  });
 
-<!-- Styles inline pour les overlays modaux (visibility toggle) -->
-<style>
-  #modal-overlay.visible,
-  #add-scene-overlay.visible,
-  #export-overlay.visible { display: flex !important; }
-</style>
+  fileZone.addEventListener('dragleave', () => {
+    fileZone.classList.remove('drag-over');
+  });
 
-<!-- Point d'entrée ES module -->
-<script type="module" src="main.js"></script>
+  fileZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    fileZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.name.endsWith('.json')) {
+      selectFile(file);
+    }
+  });
+
+  function selectFile(file) {
+    selectedFile = file;
+    fileName.textContent     = file.name;
+    filePlaceholder.style.display = 'none';
+    fileSelected.style.display    = 'flex';
+    btnLaunch.classList.add('visible');
+  }
+
+  // ── Lancer la visite ───────────────────────────────────────────────
+  btnLaunch.addEventListener('click', () => {
+    if (!selectedFile) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        // Valider le JSON avant de naviguer
+        const data = JSON.parse(e.target.result);
+        if (!data.scenes) throw new Error('Format invalide');
+
+        // Stocker dans sessionStorage et ouvrir le viewer
+        sessionStorage.setItem('tour360_data', e.target.result);
+        window.location.href = '/pages/viewer.html?tour=__session__';
+      } catch {
+        alert('Fichier JSON invalide ou format non reconnu.');
+      }
+    };
+    reader.readAsText(selectedFile);
+  });
+</script>
 </body>
 </html>
