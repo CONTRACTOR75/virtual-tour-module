@@ -738,6 +738,8 @@ body {
   justify-content: center;
   gap: 12px;
   pointer-events: none;
+  background: var(--bg-deep); /* ← couvre le canvas Three.js */
+  z-index: 2;
 }
 
 #viewer-empty svg {

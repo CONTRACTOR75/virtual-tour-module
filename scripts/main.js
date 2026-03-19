@@ -52,9 +52,13 @@ function markSaved() { _hasUnsavedChanges = false; }
    ══════════════════════════════════════════════════════════════════════ */
 
 sceneMgr.onSceneLoaded = (id, sceneData) => {
+  const ve = document.getElementById('viewer-empty');
+  ve.style.display  = 'none';
+  // ve.style.position = '';   // ← important : retirer le position:absolute ajouté
+  // ve.style.inset    = '';
+  // ve.style.zIndex   = '';
   renderSceneList();
   updateStatus();
-  document.getElementById('viewer-empty').style.display = 'none';
 };
 
 sceneMgr.onScenesChange = () => {
@@ -545,10 +549,10 @@ document.getElementById('btn-clear-scene').addEventListener('click', () => {
   const scene = sceneMgr.getCurrentScene();
   if (!scene) { showToast('Aucune scène chargée', 'error'); return; }
 
-  if (_isDemoLoaded) {
-    doClearScene();
-    return;
-  }
+  // if (_isDemoLoaded) {
+  //   doClearScene();
+  //   return;
+  // }
 
   document.getElementById('clear-scene-name').textContent = `"${scene.name}"`;
   document.getElementById('clear-scene-overlay').classList.add('visible');
@@ -616,15 +620,23 @@ document.getElementById('btn-delete-all-scenes').addEventListener('click', () =>
   document.getElementById('delete-all-overlay').classList.add('visible');
 });
 
-document.getElementById('btn-delete-all-confirm').addEventListener('click', () => {
+document.getElementById('btn-delete-all-confirm').addEventListener('click', async () => {
   document.getElementById('delete-all-overlay').classList.remove('visible');
   // Copier la liste avant de la modifier
+  sceneMgr.currentSceneId = null;
   [...sceneMgr.getSceneIds()].forEach(id => sceneMgr.removeScene(id));
   hotspotMgr.removeAllHotspots();
 
-  if (engine.scene) engine.scene.background = null;
+  // Réinitialiser le moteur : efface la texture et affiche le fond neutre
+  await engine.loadPanorama(null);
 
-  document.getElementById('viewer-empty').style.display = 'flex';
+  // Afficher l'empty state par-dessus
+  const ve = document.getElementById('viewer-empty');
+  ve.style.display    = 'flex';
+  // ve.style.position   = 'absolute';
+  // ve.style.inset      = '0';
+  // ve.style.zIndex     = '5';
+  
   _isDemoLoaded = false;
   markChanged();
   updateStatus();
