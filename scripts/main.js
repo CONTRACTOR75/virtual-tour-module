@@ -95,6 +95,8 @@ toggleBtn.addEventListener('click', () => {
   } else {
     collapseOpen();
   }
+  // Fallback : forcer un resize du canvas après la fin de la transition CSS
+  setTimeout(() => window.dispatchEvent(new Event('resize')), 280);
 });
 
 // Position initiale (au chargement)

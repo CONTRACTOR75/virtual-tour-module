@@ -64,7 +64,12 @@ export class Engine {
     // Lumière ambiante minimale (pour les hotspots si nécessaire)
     this.scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-    window.addEventListener('resize', this._onResize.bind(this));
+    // ResizeObserver sur le container (pas window.resize) :
+    // se déclenche quand #viewer change de taille (grille CSS, collapse sidebar…)
+    // window.resize ne se déclenche PAS dans ces cas-là.
+    this._resizeObserver = new ResizeObserver(() => this._onResize());
+    this._resizeObserver.observe(this.container);
+
     this._animate();
   }
 
@@ -206,7 +211,7 @@ export class Engine {
 
   dispose() {
     cancelAnimationFrame(this._animFrameId);
-    window.removeEventListener('resize', this._onResize.bind(this));
+    if (this._resizeObserver) this._resizeObserver.disconnect();
     this.renderer.dispose();
     if (this.renderer.domElement.parentNode) {
       this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
