@@ -169,7 +169,7 @@
           Supprimer
         </button>
         <!-- ← NOUVEAU -->
-        <button id="btn-clear-scene" class="btn btn-danger">
+        <button id="btn-clear-scene" class="btn btn-danger" title="Effacer tous les hotspots de la scène">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
           </svg>
@@ -225,7 +225,7 @@
   <button id="btn-sidebar-toggle" title="Réduire / agrandir le menu" style="
     position:fixed;top:50%;transform:translateY(-50%);
     
-    z-index:200;
+    z-index:100;
     width:16px;height:52px;
     background:var(--bg-panel,#1c2230);
     border:1px solid var(--border,rgba(48,54,61,.7));
@@ -415,7 +415,7 @@
   position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);
   display:none;align-items:center;justify-content:center;z-index:100;">
     <div class="modal" style="max-width:400px;">
-      <h2 class="modal-title" title="Effacer tous les hotspots de la scène">
+      <h2 class="modal-title" >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10" />
           <path d="M12 8v4M12 16h.01" />
