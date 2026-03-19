@@ -1,85 +1,64 @@
 {
   "name": "Visite Démo — Appartement",
-  "initialScene": "salon",
+  "initialScene": "petite-chambre-1773917695995",
   "scenes": {
-    "salon": {
+    "petite-chambre-1773917695995": {
+      "name": "Petite chambre",
+      "image": "https://thumbs.dreamstime.com/b/empty-white-room-furniture-full-spherical-hdri-panorama-degrees-interior-room-modern-apartments-office-clinic-171139480.jpg?w=1400",
+      "hotspots": [
+        {
+          "type": "navigate",
+          "yaw": -159.31,
+          "pitch": -20.47,
+          "target": "couloir-1773917956053",
+          "label": "Vers le couloir"
+        }
+      ]
+    },
+    "salon-1773917818590": {
       "name": "Salon",
-      "image": "https://votre-domaine.com/images/salon-360.jpg",
+      "image": "https://media.istockphoto.com/id/1098031376/photo/spherical-360-panorama-projection-scandinavian-style-interior-design-3d-rendering.jpg?s=612x612&w=0&k=20&c=a3ygRwIf8lHMxDKUPUvql6e6dwBqwYSjbo90MjiBMrc=",
       "hotspots": [
         {
           "type": "navigate",
-          "yaw": 45,
-          "pitch": -8,
-          "target": "cuisine",
-          "label": "Vers la Cuisine"
-        },
-        {
-          "type": "navigate",
-          "yaw": -120,
-          "pitch": -5,
-          "target": "chambre",
-          "label": "Vers la Chambre"
+          "yaw": -117.99,
+          "pitch": -19.59,
+          "target": "couloir-1773917956053",
+          "label": "Vers le couloir"
         },
         {
           "type": "info",
-          "yaw": -90,
-          "pitch": 5,
-          "title": "Canapé",
-          "description": "Canapé en cuir naturel brun, 3 places, réalisé par un artisan local. Dimensions : 240cm × 90cm."
+          "yaw": 26.51,
+          "pitch": -26.84,
+          "title": "Canapé en mousse",
+          "description": "Extra confortable"
         },
         {
           "type": "info",
-          "yaw": 160,
-          "pitch": 10,
-          "title": "Bibliothèque",
-          "description": "Bibliothèque sur mesure en chêne massif, 400 ouvrages. Hauteur sous plafond : 2,80m."
+          "yaw": 165.7,
+          "pitch": 1.15,
+          "title": "LG TV",
+          "description": "Une smart TV de 32\" par ce que vous le valez bien"
         }
       ]
     },
-    "cuisine": {
-      "name": "Cuisine",
-      "image": "https://votre-domaine.com/images/cuisine-360.jpg",
+    "couloir-1773917956053": {
+      "name": "Couloir",
+      "image": "https://d3q6ez88w6naic.cloudfront.net/tours/0/0/42/707/low/636548_3.jpg?Expires=1730643373&Signature=qgUbQaNfuAXH-fsrQKQfe-8jukIP7wlWALFWJyrlx1i10ZWTdi~0ma98QT43kNN18w2rtnB-05U-xuvZNBWcBVHp9ydowwsUep-eYIra9gJjbvpEjM67q3OkLi2ETju3kjaXZze7fgHVdwWpqwShzUBufJbBb276kN8uGbTl9LtzfvS0C-HsOJL59VmT06SxZ3eZpqNYjBUtn0UDW5Jrp06fxZLA9i1o98wwBwkUNBqHhHP8knoDS5HUNs9CBfBAwzo4ic57n3kp4FnI9MnXIxe0PiqKChl5CsCH1ezhSo7nApixKJG0BOHojj~3ZAYBjltoCMe3rMnSGhnyi6tV7Q__&Key-Pair-Id=APKAJBAMN362UX5BA6EA",
       "hotspots": [
         {
           "type": "navigate",
-          "yaw": -135,
-          "pitch": -5,
-          "target": "salon",
-          "label": "Vers le Salon"
+          "yaw": 130.95,
+          "pitch": -8.03,
+          "target": "salon-1773917818590",
+          "label": "Vers le salon"
         },
-        {
-          "type": "info",
-          "yaw": 30,
-          "pitch": 5,
-          "title": "Îlot central",
-          "description": "Plan de travail en marbre de Carrare blanc, 3m × 1,2m. Équipé d'un évier double bac et d'une plaque induction."
-        },
-        {
-          "type": "info",
-          "yaw": 150,
-          "pitch": -10,
-          "title": "Cuisine équipée",
-          "description": "Cuisine Bulthaup B3 entièrement équipée : réfrigérateur intégré, four vapeur, lave-vaisselle."
-        }
-      ]
-    },
-    "chambre": {
-      "name": "Chambre principale",
-      "image": "https://votre-domaine.com/images/chambre-360.jpg",
-      "hotspots": [
         {
           "type": "navigate",
-          "yaw": 90,
-          "pitch": -5,
-          "target": "salon",
-          "label": "Vers le Salon"
-        },
-        {
-          "type": "info",
-          "yaw": 0,
-          "pitch": 0,
-          "title": "Lit King Size",
-          "description": "Lit king size (180×200cm) avec tête de lit en velours gris anthracite."
+          "yaw": 42.99,
+          "pitch": -30.14,
+          "target": "petite-chambre-1773917695995",
+          "label": "Vers la petite chambre"
         }
       ]
     }
