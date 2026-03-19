@@ -2,6 +2,10 @@
 
 Éditeur et visualiseur de visites virtuelles 360° basé sur **Three.js** et **JavaScript vanilla** (modules ES6). Conçu pour être intégré dans un projet Angular.
 
+> ⚠️ **Connexion internet requise** — Three.js est chargé via CDN (`unpkg.com`) et les polices via Google Fonts. Sans connexion active, l'application ne se lance pas correctement (rendu 3D absent, polices manquantes, interface dégradée).
+
+---
+
 ## Structure du projet
 
 ```
@@ -24,15 +28,15 @@ tour-editor/
 └── README.md
 ```
 
+---
+
 ## Installation et lancement
 
-> ⚠️ Les modules ES6 (`import/export`) nécessitent un **serveur HTTP local**.
+> ⚠️ Les modules ES6 (`import/export`) nécessitent un **serveur HTTP local** — ouvrir `index.html` directement depuis le système de fichiers ne fonctionnera pas.
 
 ```bash
 cd tour-editor
 python3 -m http.server 8080
-# Ouvrir : http://localhost:8080/index.html
-ou simplement
 # Ouvrir : http://localhost:8080
 ```
 
@@ -45,45 +49,59 @@ Autres options : `npx serve .` ou l'extension **Live Server** de VS Code.
 | Fichier | Rôle |
 |---|---|
 | `index.html` | Page d'accueil — sélection fichier JSON + lien éditeur |
-| `editor.html` | Éditeur complet (créer/modifier une visite) |
-| `viewer.html?tour=fichier.json` | Visualiseur appelé avec un fichier JSON |
-| `viewer.html?tour=__session__` | Visualiseur appelé depuis la landing (via sessionStorage) |
+| `pages/editor.html` | Éditeur complet (créer/modifier une visite) |
+| `pages/viewer.html?tour=fichier.json` | Visualiseur appelé avec un fichier JSON local |
+| `pages/viewer.html?tour=https://…` | Visualiseur appelé avec une URL distante |
+| `pages/viewer.html?tour=__session__` | Visualiseur appelé depuis la landing (via sessionStorage) |
 
 ---
 
 ## Guide d'utilisation
 
-### Landing
+### Landing (`index.html`)
 
 - **Carte Visualiser** : glisser-déposer ou sélectionner un fichier JSON → bouton "Lancer la visite"
 - **Carte Éditeur** : lien direct vers l'éditeur
 
-### Mode Preview (éditeur)
+### Éditeur — Mode Preview
 
 | Action | Résultat |
 |--------|----------|
 | Clic-glisser | Rotation de la caméra |
-| Molette | Zoom |
+| Molette | Zoom avant / arrière |
 | Clic sur hotspot bleu | Navigation vers la scène cible |
 | Clic sur hotspot vert | Affichage de la fiche info |
 
-### Mode Édition
+### Éditeur — Mode Édition
 
 | Action | Résultat |
 |--------|----------|
-| **Ajouter hotspot** + clic sphère | Popup de création |
-| Clic sur un hotspot | Sélection + popup d'édition |
-| Glisser un hotspot | Repositionnement |
-| **Supprimer** | Supprime le hotspot sélectionné |
-| Aucune scène cible choisie | Propose de créer la scène de destination |
+| **Ajouter hotspot** + clic sur la sphère | Ouvre la popup de création |
+| Clic sur un hotspot existant | Sélection + popup d'édition |
+| Glisser un hotspot | Repositionnement libre |
+| **Supprimer** (toolbar) | Supprime le hotspot sélectionné |
+| **Effacer la scène** (toolbar) | Supprime tous les hotspots de la scène courante (confirmation requise) |
+| Hotspot navigate sans scène cible | Propose de créer la scène de destination |
 
 ### Gestion des scènes (sidebar)
 
-- **Ajouter une scène** : nom + URL de l'image panoramique
-- **Clic sur une scène** : charge la scène
-- **✕** : supprime la scène
-- **Importer JSON** : charge une visite existante
-- **Charger la démo** : 2 scènes d'exemple préconfigurées
+- **Ajouter une scène** : nom + URL ou fichier local (JPEG/PNG/WebP, max 10 Mo) — image obligatoire
+- **Clic sur une scène** : charge et affiche la scène dans l'éditeur
+- **🗑 (poubelle)** : supprime la scène individuelle (confirmation requise)
+- **Réinitialiser repères** : supprime tous les hotspots de toutes les scènes (scènes conservées)
+- **Supprimer tout** : supprime toutes les scènes et repart de zéro (confirmation requise)
+- **Importer JSON** : charge une visite depuis un fichier `.json`
+- **Charger la démo** : 2 scènes préconfigurées avec hotspots d'exemple
+- **◀ / ▶** : bouton de réduction/agrandissement de la sidebar (le viewer s'adapte automatiquement)
+
+---
+
+## Validation des données
+
+- **Scène** : un nom et une image panoramique sont obligatoires à la création
+- **Hotspot Info** : le titre et la description sont tous deux obligatoires
+- **Image locale** : formats acceptés JPEG, PNG, WebP — taille max 10 Mo
+- Un avertissement natif du navigateur s'affiche si vous quittez ou rafraîchissez la page avec des modifications non exportées
 
 ---
 
@@ -141,7 +159,7 @@ Autres options : `npx serve .` ou l'extension **Live Server** de VS Code.
 |-------|------|--------|-------------|
 | `name` | string | ✓ | Nom affiché de la scène |
 | `image` | string | ✓ | URL de l'image panoramique équirectangulaire |
-| `hotspots` | Hotspot[] | ✓ | Liste des hotspots (peut être vide) |
+| `hotspots` | Hotspot[] | ✓ | Liste des hotspots (peut être vide `[]`) |
 
 **Hotspot — type `navigate`**
 
@@ -160,26 +178,28 @@ Autres options : `npx serve .` ou l'extension **Live Server** de VS Code.
 | `type` | `"info"` | Affichage d'une fiche d'information |
 | `yaw` | number | Azimut en degrés |
 | `pitch` | number | Élévation en degrés |
-| `title` | string | Titre de la fiche |
-| `description` | string | Corps de la fiche |
+| `title` | string | Titre de la fiche (obligatoire) |
+| `description` | string | Corps de la fiche (obligatoire) |
 
 ### Images panoramiques
 
 - **Format** : JPEG ou PNG équirectangulaire (projection 360°×180°)
 - **Ratio recommandé** : 2:1 — ex : 4096×2048 px
 - **Sources** : Ricoh Theta, Insta360, GoPro MAX, Google Street View Takeout
-- Les images peuvent être hébergées localement ou sur un CDN (CORS requis si origines différentes)
+- Les images peuvent être hébergées localement ou sur un CDN
+- ⚠️ Si les images sont sur un domaine différent du serveur, ce dernier doit envoyer les en-têtes **CORS** appropriés
 
 ---
 
 ## Dépendances
 
-| Lib | Version | Usage |
-|-----|---------|-------|
-| [Three.js](https://threejs.org) | 0.160.0 | Rendu 3D WebGL |
-| OrbitControls | inclus Three.js | Contrôle caméra orbite |
+| Lib | Version | Usage | Chargement |
+|-----|---------|-------|------------|
+| [Three.js](https://threejs.org) | 0.160.0 | Rendu 3D WebGL | CDN `unpkg.com` |
+| OrbitControls | inclus Three.js | Contrôle caméra orbite | CDN `unpkg.com` |
+| IBM Plex Sans / Mono | — | Typographie de l'interface | Google Fonts |
 
-Chargées via CDN `unpkg.com` — aucune installation npm requise pour le prototype standalone.
+> Aucune installation npm requise pour le prototype standalone. Toutes les dépendances sont chargées à la volée — **une connexion internet active est donc indispensable au bon fonctionnement de l'application**.
 
 ---
 
